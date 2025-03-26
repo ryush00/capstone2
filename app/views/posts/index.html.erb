@@ -1,0 +1,88 @@
+<div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
+  <h1 class="text-3xl font-bold mb-6">원광대학교 사이버캠퍼스 공지사항</h1>
+  
+  <% if @error.present? %>
+    <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
+      <%= @error %>
+    </div>
+  <% end %>
+  
+  <div class="overflow-x-auto">
+    <table class="min-w-full divide-y divide-gray-200">
+      <thead class="bg-gray-50">
+        <tr>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">구분</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">제목</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성자</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">작성일</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">조회수</th>
+          <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">첨부파일</th>
+        </tr>
+      </thead>
+      <tbody class="bg-white divide-y divide-gray-200">
+        <% @posts&.each do |post| %>
+          <tr class="<%= post[:type]&.include?('공지') ? 'bg-gray-50' : '' %>">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <% if post[:type].present? %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  <%= post[:type] %>
+                </span>
+              <% else %>
+                <%= post[:number] %>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <%= post[:title] %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= post[:author] %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= post[:date] %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= post[:views] %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <% if post[:has_file] %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  파일
+                </span>
+              <% end %>
+            </td>
+          </tr>
+        <% end %>
+      </tbody>
+    </table>
+  </div>
+  
+  <div class="mt-8 bg-gray-50 p-4 rounded-lg">
+    <h2 class="text-xl font-semibold mb-4">페이지 구조 분석</h2>
+    <pre class="bg-gray-100 p-4 rounded overflow-auto text-xs">
+1. 게시글 목록 구조:
+   - 공지사항: &lt;tr class="notice notice-view"&gt;
+   - 일반게시글: &lt;tr&gt; (class 없음)
+
+2. 게시글 항목 구조:
+   - 공지사항 태그: td:nth-child(1) &gt; span.label
+   - 작성자: td:nth-child(2)
+   - 제목: td:nth-child(3) &gt; a
+   - 날짜: td:nth-child(4)
+   - 조회수: td:nth-child(5)
+   - 파일첨부: td:nth-child(6) &gt; span.label
+
+3. 게시글 링크:
+   - 형식: JavaScript:viewGo("1742804766028", 1);
+   - 링크 ID 추출 방법: viewGo("ID", 1) 에서 ID 부분을 추출
+
+4. 페이지네이션:
+   - 형식: &lt;div class="pagination"&gt; 내부의 &lt;ul&gt; &lt;li&gt; 요소들
+   - 페이지 이동: JavaScript:listGo(1, 페이지번호);
+
+5. 검색 기능:
+   - 검색 폼: 하단의 &lt;form&gt; 요소
+   - 검색 필드: select[name='sField']
+   - 검색어: input[name='sKey']
+    </pre>
+  </div>
+</div>
