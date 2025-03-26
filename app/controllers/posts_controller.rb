@@ -72,8 +72,15 @@ class PostsController < ApplicationController
     #    - 파일첨부: td:nth-child(6) > span.label
     # 
     # 3. 게시글 링크:
-    #    - 형식: JavaScript:viewGo("1742804766028", 1);
+    #    - 원본 형식: JavaScript:viewGo("1742804766028", 1);
     #    - 링크 ID 추출 방법: viewGo("ID", 1) 에서 ID 부분을 추출
+    #    - POST 방식 접근: /Cyber/ComBoard_V005/Content/view.jsp (cid 파라미터 필요)
+    #    - GET 방식 접근: /Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=POST_ID
+    #    - 필수 폼 파라미터:
+    #      * gid: 1115983888724 (게시판 그룹 ID)
+    #      * bid: 1115985252888 (게시판 ID)  
+    #      * cid: 게시글 ID (viewGo 함수의 첫 번째 파라미터)
+    #      * lpage: 페이지 번호 (기본값 1)
     # 
     # 4. 페이지네이션:
     #    - 형식: <div class="pagination"> 내부의 <ul> <li> 요소들
