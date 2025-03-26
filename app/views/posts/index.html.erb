@@ -1,5 +1,12 @@
 <div class="max-w-7xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
-  <h1 class="text-3xl font-bold mb-6">원광대학교 사이버캠퍼스 공지사항</h1>
+  <div class="flex justify-between items-center mb-6">
+    <h1 class="text-3xl font-bold">원광대학교 사이버캠퍼스 공지사항</h1>
+    <div>
+      <a href="<%= posts_path(refresh: true) %>" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded">
+        최신 게시글 가져오기
+      </a>
+    </div>
+  </div>
   
   <% if @error.present? %>
     <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded mb-4">
@@ -7,7 +14,7 @@
     </div>
   <% end %>
   
-  <div class="overflow-x-auto">
+  <div class="overflow-x-auto mb-6">
     <table class="min-w-full divide-y divide-gray-200">
       <thead class="bg-gray-50">
         <tr>
@@ -20,43 +27,93 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <% @posts&.each do |post| %>
-          <tr class="<%= post[:type]&.include?('공지') ? 'bg-gray-50' : '' %>">
-            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-              <% if post[:type].present? %>
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                  <%= post[:type] %>
-                </span>
-              <% else %>
-                <%= post[:number] %>
-              <% end %>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-              <% if post[:link_id].present? %>
-                <a href="https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=<%= post[:link_id] %>" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">
+        <% if @posts.is_a?(Array) %>
+          <!-- 직접 크롤링한 게시글 목록 (기존 스타일) -->
+          <% @posts&.each do |post| %>
+            <tr class="<%= post[:type]&.include?('공지') ? 'bg-gray-50' : '' %>">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <% if post[:type].present? %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    <%= post[:type] %>
+                  </span>
+                <% else %>
+                  <%= post[:number] %>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <% if post[:link_id].present? %>
+                  <a href="https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=<%= post[:link_id] %>" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">
+                    <%= post[:title] %>
+                  </a>
+                <% else %>
                   <%= post[:title] %>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= post[:author] %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= post[:date] %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= post[:views] %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if post[:has_file] %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    파일
+                  </span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
+        <% else %>
+          <!-- 데이터베이스에서 가져온 게시글 목록 -->
+          <% @posts&.each do |post| %>
+            <tr class="<%= post.is_notice ? 'bg-gray-50' : '' %>">
+              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                <% if post.is_notice %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                    공지
+                  </span>
+                <% else %>
+                  <%= post.id %>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                <!-- 내부 상세 페이지로 링크 -->
+                <a href="<%= post_path(post) %>" class="text-blue-600 hover:text-blue-800 hover:underline">
+                  <%= post.title %>
                 </a>
-              <% else %>
-                <%= post[:title] %>
-              <% end %>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <%= post[:author] %>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <%= post[:date] %>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <%= post[:views] %>
-            </td>
-            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-              <% if post[:has_file] %>
-                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                  파일
-                </span>
-              <% end %>
-            </td>
-          </tr>
+                <!-- 원본 페이지 링크 -->
+                <a href="<%= post.source_url %>" target="_blank" class="ml-2 text-gray-400 hover:text-gray-600" title="원본 페이지">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                  </svg>
+                </a>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= post.author_name %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if post.posted_date.present? %>
+                  <%= post.posted_date.strftime("%Y-%m-%d") %>
+                <% else %>
+                  <%= post.created_at.strftime("%Y-%m-%d") %>
+                <% end %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <%= post.view_count %>
+              </td>
+              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                <% if post.attachment_urls.present? && post.attachment_urls.any? %>
+                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                    파일
+                  </span>
+                <% end %>
+              </td>
+            </tr>
+          <% end %>
         <% end %>
       </tbody>
     </table>

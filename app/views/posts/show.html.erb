@@ -1,0 +1,94 @@
+<div class="max-w-4xl mx-auto mt-8 px-4">
+  <div class="mb-6">
+    <a href="<%= posts_path %>" class="text-blue-600 hover:text-blue-800 hover:underline">
+      &larr; 목록으로 돌아가기
+    </a>
+  </div>
+
+  <article class="bg-white rounded-lg shadow-md overflow-hidden">
+    <header class="border-b border-gray-200 px-6 py-4">
+      <div class="flex justify-between items-center mb-2">
+        <div>
+          <% if @post.is_notice %>
+            <span class="inline-block bg-red-100 text-red-800 text-xs px-2 py-1 rounded-md mr-2">공지</span>
+          <% end %>
+          <span class="text-gray-500 text-sm">게시글 #<%= @post.id %></span>
+        </div>
+        <div class="text-gray-500 text-sm">
+          조회수: <%= @post.view_count %>
+        </div>
+      </div>
+      <h1 class="text-2xl font-bold text-gray-900"><%= @post.title %></h1>
+    </header>
+    
+    <div class="px-6 py-2 border-b border-gray-200 bg-gray-50 text-sm">
+      <div class="flex flex-col sm:flex-row sm:justify-between">
+        <div class="mb-2 sm:mb-0">
+          <span class="font-semibold">작성자:</span> 
+          <%= @post.author_name %>
+          <% if @post.author_id.present? %>
+            (<%= @post.author_id %>)
+          <% end %>
+          <% if @post.author_email.present? %>
+            <a href="mailto:<%= @post.author_email %>" class="text-blue-600 hover:underline ml-1">
+              <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+              </svg>
+            </a>
+          <% end %>
+        </div>
+        <div>
+          <% if @post.posted_date.present? %>
+            <span class="font-semibold">등록일:</span> <%= @post.posted_date.strftime("%Y-%m-%d %H:%M:%S") %>
+          <% else %>
+            <span class="font-semibold">등록일:</span> <%= @post.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
+          <% end %>
+        </div>
+      </div>
+    </div>
+    
+    <div class="px-6 py-6">
+      <div class="post-content prose max-w-none">
+        <%= @content_html.html_safe %>
+      </div>
+    </div>
+    
+    <% if @post.attachment_urls.present? && @post.attachment_urls.any? %>
+      <div class="px-6 py-4 border-t border-gray-200 bg-gray-50">
+        <h3 class="text-sm font-medium text-gray-700 mb-2">첨부파일</h3>
+        <ul class="space-y-1">
+          <% @post.attachment_urls.each_with_index do |url, index| %>
+            <li>
+              <a href="<%= url %>" 
+                 class="text-blue-600 hover:text-blue-800 hover:underline flex items-center"
+                 target="_blank">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                <%= @post.attachment_names[index] || "첨부파일 #{index + 1}" %>
+              </a>
+            </li>
+          <% end %>
+        </ul>
+      </div>
+    <% end %>
+    
+    <footer class="px-6 py-4 border-t border-gray-200">
+      <div class="flex justify-between items-center">
+        <div class="flex flex-col">
+          <div>
+            <strong class="text-gray-700 text-sm">원본 페이지 보기:</strong>
+          </div>
+          <%= original_page_links(@post) %>
+        </div>
+        <div class="text-gray-500 text-xs">
+          크롤링 시각: <%= @post.scraped_at.strftime("%Y-%m-%d %H:%M:%S") if @post.scraped_at.present? %>
+          <% if @post.last_updated_at.present? %>
+            <br />
+            마지막 업데이트: <%= @post.last_updated_at.strftime("%Y-%m-%d %H:%M:%S") %>
+          <% end %>
+        </div>
+      </div>
+    </footer>
+  </article>
+</div>

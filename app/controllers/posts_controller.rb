@@ -1,59 +1,133 @@
 class PostsController < ApplicationController
   require 'faraday'
   require 'nokogiri'
+  
+  def show
+    # params[:id]는 데이터베이스의 게시글 ID (Post 모델의 id)
+    @post = Post.find(params[:id])
+    
+    # 게시글 내용이 없으면 크롤링
+    if @post.content.blank?
+      Rails.logger.info "게시글 내용이 없어 크롤링합니다. 게시글 ID: #{@post.id}, 원본 CID: #{@post.cid}"
+      FetchPostDetailJob.perform_now(@post.id)
+      @post.reload
+    end
+    
+    # 한글 인코딩 복원 시도
+    if @post.content.present?
+      begin
+        # 깨진 한글 패턴 확인
+        if @post.content.match?(/���|���|���/)
+          @content_html = @post.content
+          # 추가적인 인코딩 변환 로직은 향후 구현
+        else
+          @content_html = @post.content
+        end
+      rescue => e
+        Rails.logger.error "인코딩 변환 오류: #{e.message}"
+        @content_html = @post.content
+      end
+    else
+      @content_html = "<p>게시글 내용을 불러올 수 없습니다.</p>"
+    end
+  end
 
   def index
-    # 원광대 사이버캠퍼스 공지사항 URL
-    url = 'https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/list.jsp?gid=1115983888724&bid=1115985252888'
+    # 데이터베이스에서 크롤링된 게시글 가져오기
+    @posts = Post.order(is_notice: :desc, created_at: :desc).limit(30)
     
-    begin
-      # Faraday를 사용하여 웹 페이지 가져오기
-      response = Faraday.get(url)
+    # 크롤링된 게시글이 없거나 별도로 직접 크롤링 요청이 있는 경우
+    if @posts.empty? || params[:refresh]
+      # 원광대 사이버캠퍼스 공지사항 URL
+      url = 'https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/list.jsp?gid=1115983888724&bid=1115985252888'
       
-      if response.status == 200
-        # Nokogiri를 사용하여 HTML 파싱
-        doc = Nokogiri::HTML(response.body)
+      begin
+        # Faraday를 사용하여 웹 페이지 가져오기
+        response = Faraday.get(url)
         
-        # 게시글 목록 추출
-        @posts = []
-        
-        # 공지 게시글
-        doc.css('tr.notice').each do |row|
-          post = {
-            type: row.css('td:nth-child(1) span').text.strip,
-            author: row.css('td:nth-child(2)').text.strip,
-            title: row.css('td:nth-child(3) a').text.strip,
-            date: row.css('td:nth-child(4)').text.strip,
-            views: row.css('td:nth-child(5)').text.strip,
-            has_file: row.css('td:nth-child(6)').text.strip.present?,
-            link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
-          }
+        if response.status == 200
+          # Nokogiri를 사용하여 HTML 파싱
+          doc = Nokogiri::HTML(response.body)
           
-          @posts << post unless post[:title].empty?
+          if params[:refresh]
+            # 데이터베이스에서 가져온 게시글은 그대로 두고 원본 웹사이트의 게시글 정보도 표시
+            @scraped_posts = []
+            
+            # 공지 게시글
+            doc.css('tr.notice').each do |row|
+              post = {
+                type: row.css('td:nth-child(1) span').text.strip,
+                author: row.css('td:nth-child(2)').text.strip,
+                title: row.css('td:nth-child(3) a').text.strip,
+                date: row.css('td:nth-child(4)').text.strip,
+                views: row.css('td:nth-child(5)').text.strip,
+                has_file: row.css('td:nth-child(6)').text.strip.present?,
+                link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
+              }
+              
+              @scraped_posts << post unless post[:title].empty?
+            end
+            
+            # 일반 게시글
+            doc.css('table.table tbody tr').each do |row|
+              # 헤더 행과 공지 게시글은 건너뜀
+              next if row.css('th').any? || row['class']&.include?('notice')
+              
+              post = {
+                number: row.css('td:nth-child(1)').text.strip,
+                author: row.css('td:nth-child(2)').text.strip,
+                title: row.css('td:nth-child(3) a').text.strip,
+                date: row.css('td:nth-child(4)').text.strip,
+                views: row.css('td:nth-child(5)').text.strip,
+                has_file: row.css('td:nth-child(6) span.label').present?,
+                link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
+              }
+              
+              @scraped_posts << post unless post[:title].empty?
+            end
+          else
+            # 데이터베이스 게시글이 없는 경우 직접 크롤링
+            @posts = []
+            
+            # 공지 게시글
+            doc.css('tr.notice').each do |row|
+              post = {
+                type: row.css('td:nth-child(1) span').text.strip,
+                author: row.css('td:nth-child(2)').text.strip,
+                title: row.css('td:nth-child(3) a').text.strip,
+                date: row.css('td:nth-child(4)').text.strip,
+                views: row.css('td:nth-child(5)').text.strip,
+                has_file: row.css('td:nth-child(6)').text.strip.present?,
+                link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
+              }
+              
+              @posts << post unless post[:title].empty?
+            end
+            
+            # 일반 게시글
+            doc.css('table.table tbody tr').each do |row|
+              # 헤더 행과 공지 게시글은 건너뜀
+              next if row.css('th').any? || row['class']&.include?('notice')
+              
+              post = {
+                number: row.css('td:nth-child(1)').text.strip,
+                author: row.css('td:nth-child(2)').text.strip,
+                title: row.css('td:nth-child(3) a').text.strip,
+                date: row.css('td:nth-child(4)').text.strip,
+                views: row.css('td:nth-child(5)').text.strip,
+                has_file: row.css('td:nth-child(6) span.label').present?,
+                link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
+              }
+              
+              @posts << post unless post[:title].empty?
+            end
+          end
+        else
+          @error = "페이지를 가져올 수 없습니다. 상태 코드: #{response.status}"
         end
-        
-        # 일반 게시글
-        doc.css('table.table tbody tr').each do |row|
-          # 헤더 행과 공지 게시글은 건너뜀
-          next if row.css('th').any? || row['class']&.include?('notice')
-          
-          post = {
-            number: row.css('td:nth-child(1)').text.strip,
-            author: row.css('td:nth-child(2)').text.strip,
-            title: row.css('td:nth-child(3) a').text.strip,
-            date: row.css('td:nth-child(4)').text.strip,
-            views: row.css('td:nth-child(5)').text.strip,
-            has_file: row.css('td:nth-child(6) span.label').present?,
-            link_id: row.css('td:nth-child(3) a').attr('href')&.to_s&.match(/viewGo\(\"([^\"]+)\"/)&.captures&.first
-          }
-          
-          @posts << post unless post[:title].empty?
-        end
-      else
-        @error = "페이지를 가져올 수 없습니다. 상태 코드: #{response.status}"
+      rescue => e
+        @error = "오류가 발생했습니다: #{e.message}"
       end
-    rescue => e
-      @error = "오류가 발생했습니다: #{e.message}"
     end
     
     # 페이지 구조 분석

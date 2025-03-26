@@ -1,6 +1,6 @@
 Rails.application.routes.draw do
-  # 게시글 목록 라우팅
-  resources :posts, only: [:index]
+  # 게시글 라우팅
+  resources :posts, only: [:index, :show]
   
   # Define your application routes per the DSL in https://guides.rubyonrails.org/routing.html
 
