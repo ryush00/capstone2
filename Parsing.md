@@ -1,5 +1,24 @@
 # 원광대학교 사이버캠퍼스 페이지 파싱 구조 분석
 
+## 실제 URL 예시
+
+### 베이스 URL
+- 사이버캠퍼스: `https://cyber.wku.ac.kr/`
+
+### 게시글 목록 페이지
+- 목록 페이지: `https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/list.jsp?gid=1115983888724&bid=1115985252888`
+- 페이지 지정: `https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/list.jsp?gid=1115983888724&bid=1115985252888&page=2`
+- 검색 결과: `https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/list.jsp?gid=1115983888724&bid=1115985252888&sField=TITLE&sKey=검색어`
+
+### 게시글 상세 페이지
+- POST 방식(직접 URL로 접근 불가): `https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/view.jsp`
+  - POST 파라미터: `gid=1115983888724&bid=1115985252888&cid=1742956026481&lpage=1`
+- GET 방식(접근 가능): `https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=1742956026481`
+
+### 이미지 URL
+- 예시: `https://cyberimg.wku.ac.kr/ComBoard/img/upload/1115983888724/1115985252888/2025/03/1742956026481/org/0003.jpg`
+- 구조: `https://cyberimg.wku.ac.kr/ComBoard/img/upload/[gid]/[bid]/[year]/[month]/[cid]/org/[filename]`
+
 ## 1. 게시글 목록 구조 (list.jsp)
 
 ### 게시글 목록 구조:
