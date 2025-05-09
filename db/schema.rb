@@ -10,11 +10,11 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_03_26_064429) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_09_083603) do
   create_table "posts", force: :cascade do |t|
     t.string "title"
     t.text "content"
-    t.datetime "posted_date"
+    t.datetime "posted_at"
     t.integer "view_count"
     t.string "author_name"
     t.string "author_id"

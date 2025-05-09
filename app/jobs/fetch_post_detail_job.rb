@@ -30,7 +30,7 @@ class FetchPostDetailJob < ApplicationJob
         Post.transaction do
           # 상세 정보가 없는 게시글 중 하나를 선택하고 잠금 설정
           # FOR UPDATE로 레코드를 잠그고 SKIP LOCKED로 이미 잠긴 레코드는 건너뜀
-          post = Post.where(posted_date: nil)
+          post = Post.where(posted_at: nil)
                      .order(created_at: :desc)
                      .lock("FOR UPDATE SKIP LOCKED")
                      .first
@@ -127,9 +127,9 @@ class FetchPostDetailJob < ApplicationJob
               date_str = date_match[1]
               date_str = date_str.gsub(/년|월/, '-').gsub(/일/, ' ').gsub(/시|분/, ':').gsub(/초/, '')
               date_str = date_str.gsub(/\s+/, ' ').gsub(/- /, '-').gsub(/: /, ':').strip
-              posted_date = DateTime.parse(date_str)
+              posted_at = DateTime.parse(date_str)
             rescue ArgumentError=> e
-              posted_date = nil
+              posted_at = nil
               Rails.logger.warn "날짜 파싱 실패: #{date_match[1]}"
             end
           end
@@ -151,7 +151,7 @@ class FetchPostDetailJob < ApplicationJob
         
         # 게시글 업데이트
         post.content = content_html
-        post.posted_date = posted_date if posted_date.present?
+        post.posted_at = posted_at if posted_at.present?
         post.author_id = author_id if author_id.present?
         post.author_email = author_email if author_email.present?
         post.attachment_urls = attachment_urls

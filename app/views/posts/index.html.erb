@@ -96,8 +96,8 @@
                 <%= post.author_name %>
               </td>
               <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <% if post.posted_date.present? %>
-                  <%= post.posted_date.strftime("%Y-%m-%d") %>
+                <% if post.posted_at.present? %>
+                  <%= post.posted_at.strftime("%Y-%m-%d") %>
                 <% else %>
                   <%= post.created_at.strftime("%Y-%m-%d") %>
                 <% end %>

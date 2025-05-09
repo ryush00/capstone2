@@ -67,6 +67,7 @@ class FetchPostsJob < ApplicationJob
     source_url = "#{BASE_URL}/print.jsp?gid=#{GID}&bid=#{BID}&cid=#{cid}"
     
     # 게시글 속성 구성 (view에서만 확인 가능한 정보는 제외)
+    # posted_at은 목록에서는 정확도가 낮으므로 FetchPostDetailJob에서 처리
     post_attributes = {
       title: row.css('td:nth-child(3) a').text.strip,
       author_name: row.css('td:nth-child(2)').text.strip,

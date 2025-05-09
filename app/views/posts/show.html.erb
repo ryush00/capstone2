@@ -38,8 +38,8 @@
           <% end %>
         </div>
         <div>
-          <% if @post.posted_date.present? %>
-            <span class="font-semibold">등록일:</span> <%= @post.posted_date.strftime("%Y-%m-%d %H:%M:%S") %>
+          <% if @post.posted_at.present? %>
+            <span class="font-semibold">등록일:</span> <%= @post.posted_at.strftime("%Y-%m-%d %H:%M:%S") %>
           <% else %>
             <span class="font-semibold">등록일:</span> <%= @post.created_at.strftime("%Y-%m-%d %H:%M:%S") %>
           <% end %>
