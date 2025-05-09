@@ -30,13 +30,13 @@ class FetchPostsJob < ApplicationJob
         posts_count = 0
         
         # 공지사항 처리
-        doc.css('tr.notice').each do |row|
+        doc.css('tr.notice').reverse_each do |row|
           process_notice_post(row)
           posts_count += 1
         end
         
         # 일반 게시글 처리
-        doc.css('table.table tbody tr').each do |row|
+        doc.css('table.table tbody tr').reverse_each do |row|
           # 헤더 행과 공지 게시글은 건너뜀
           next if row.css('th').any? || row['class']&.include?('notice')
           
