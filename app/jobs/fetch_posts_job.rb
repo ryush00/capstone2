@@ -125,7 +125,15 @@ class FetchPostsJob < ApplicationJob
     
     # 게시글 속성 업데이트
     post.assign_attributes(attributes)
-    
+
+    changed = post.changed - ['view_count', 'scraped_at']
+    # view_count, scraped_at를 제외하고 수정된 상태라면
+    if changed.any?
+      puts "수정된 요소: #{changed.join(', ')}"
+    else
+      puts "수정된 요소 없음"
+    end
+
     # 만약 이미 존재하는 레코드인 경우 last_updated_at 설정
     post.last_updated_at = Time.current unless post.new_record?
     
