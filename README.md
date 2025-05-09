@@ -1,24 +1,5 @@
-# README
-
-This README would normally document whatever steps are necessary to get the
-application up and running.
-
-Things you may want to cover:
-
-* Ruby version
-
-* System dependencies
-
-* Configuration
-
-* Database creation
-
-* Database initialization
-
-* How to run the test suite
-
-* Services (job queues, cache servers, search engines, etc.)
-
-* Deployment instructions
-
-* ...
+# 개발 환경 구축 방법
+1. 코드스페이스 생성
+2. bundle install 명령어로 의존성 모두 설치
+3. bin/dev 명령어로 개발 환경 실행
+4. 편집기 하단 포트 탭 가보면 프로세스 실행된 것 확인 가능. 전달된 주소를 누르면 접속 가능
