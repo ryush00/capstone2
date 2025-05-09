@@ -51,6 +51,8 @@ class FetchPostsJob < ApplicationJob
     rescue => e
       Rails.logger.error "게시글 크롤링 중 오류 발생: #{e.message}\n#{e.backtrace.join("\n")}"
     end
+
+    FetchPostDetailJob.perform_later(nil, 30) if page == 1
   end
   
   private
