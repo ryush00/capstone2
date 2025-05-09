@@ -16,13 +16,26 @@ class FetchPostDetailJob < ApplicationJob
       post = Post.find_by(id: post_id)
       process_post(post) if post.present?
     else
-      # 상세 정보가 없는 게시글들을 처리 (최신순으로)
-      posts = Post.where(content: nil).order(created_at: :desc).limit(limit)
+      # 처리된 게시글 수 추적
+      processed_count = 0
       
-      if posts.any?
-        Rails.logger.info "#{posts.size}개의 게시글 상세 정보 크롤링 시작"
+      # 지정된 limit만큼 게시글 처리
+      Rails.logger.info "최대 #{limit}개의 게시글 상세 정보 크롤링 시작"
+      
+      # limit 수만큼 반복
+      limit.times do |i|
+        # 트랜잭션 내에서 FOR UPDATE SKIP LOCKED를 사용하여 처리할 게시글 가져오기
+        post = nil
         
-        posts.each do |post|
+        Post.transaction do
+          # 상세 정보가 없는 게시글 중 하나를 선택하고 잠금 설정
+          # FOR UPDATE로 레코드를 잠그고 SKIP LOCKED로 이미 잠긴 레코드는 건너뜀
+          post = Post.where(posted_date: nil)
+                     .order(created_at: :desc)
+                     .lock("FOR UPDATE SKIP LOCKED")
+                     .first
+          
+          if post.present?
           process_post(post)
           # 서버에 부담을 주지 않도록 요청 사이에 짧은 대기 시간 추가
           sleep(1)
