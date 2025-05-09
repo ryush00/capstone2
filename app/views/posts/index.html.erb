@@ -118,41 +118,4 @@
       </tbody>
     </table>
   </div>
-  
-  <div class="mt-8 bg-gray-50 p-4 rounded-lg">
-    <h2 class="text-xl font-semibold mb-4">페이지 구조 분석</h2>
-    <pre class="bg-gray-100 p-4 rounded overflow-auto text-xs">
-1. 게시글 목록 구조:
-   - 공지사항: &lt;tr class="notice notice-view"&gt;
-   - 일반게시글: &lt;tr&gt; (class 없음)
-
-2. 게시글 항목 구조:
-   - 공지사항 태그: td:nth-child(1) &gt; span.label
-   - 작성자: td:nth-child(2)
-   - 제목: td:nth-child(3) &gt; a
-   - 날짜: td:nth-child(4)
-   - 조회수: td:nth-child(5)
-   - 파일첨부: td:nth-child(6) &gt; span.label
-
-3. 게시글 링크:
-   - 원본 형식: JavaScript:viewGo("1742804766028", 1);
-   - 링크 ID 추출 방법: viewGo("ID", 1) 에서 ID 부분을 추출
-   - POST 방식 접근: /Cyber/ComBoard_V005/Content/view.jsp (cid 파라미터 필요)
-   - GET 방식 접근: /Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=POST_ID
-   - 필수 폼 파라미터:
-     * gid: 1115983888724 (게시판 그룹 ID)
-     * bid: 1115985252888 (게시판 ID)  
-     * cid: 게시글 ID (viewGo 함수의 첫 번째 파라미터)
-     * lpage: 페이지 번호 (기본값 1)
-
-4. 페이지네이션:
-   - 형식: &lt;div class="pagination"&gt; 내부의 &lt;ul&gt; &lt;li&gt; 요소들
-   - 페이지 이동: JavaScript:listGo(1, 페이지번호);
-
-5. 검색 기능:
-   - 검색 폼: 하단의 &lt;form&gt; 요소
-   - 검색 필드: select[name='sField']
-   - 검색어: input[name='sKey']
-    </pre>
-  </div>
 </div>
