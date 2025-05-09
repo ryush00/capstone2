@@ -36,12 +36,20 @@ class FetchPostDetailJob < ApplicationJob
                      .first
           
           if post.present?
-          process_post(post)
-          # 서버에 부담을 주지 않도록 요청 사이에 짧은 대기 시간 추가
-          sleep(1)
+            process_post(post)
+            processed_count += 1
+          end
         end
         
-        Rails.logger.info "게시글 상세 정보 크롤링 완료"
+        # 더 이상 처리할 게시글이 없으면 반복 중단
+        break if post.nil?
+        
+        # 서버에 부담을 주지 않도록 요청 사이에 짧은 대기 시간 추가
+        sleep(1) if i < limit - 1 && post.present?
+      end
+      
+      if processed_count > 0
+        Rails.logger.info "총 #{processed_count}개의 게시글 상세 정보 크롤링 완료"
       else
         Rails.logger.info "처리할 게시글이 없습니다"
       end
@@ -118,8 +126,9 @@ class FetchPostDetailJob < ApplicationJob
             begin
               date_str = date_match[1]
               date_str = date_str.gsub(/년|월/, '-').gsub(/일/, ' ').gsub(/시|분/, ':').gsub(/초/, '')
+              date_str = date_str.gsub(/\s+/, ' ').gsub(/- /, '-').gsub(/: /, ':').strip
               posted_date = DateTime.parse(date_str)
-            rescue ArgumentError
+            rescue ArgumentError=> e
               posted_date = nil
               Rails.logger.warn "날짜 파싱 실패: #{date_match[1]}"
             end
