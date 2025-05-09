@@ -9,18 +9,6 @@ class PostsController < ApplicationController
       FetchPostDetailJob.perform_now(@post.id)
       @post.reload
     end
-    
-    # 한글 인코딩 복원 시도
-    if @post.content.present?
-      begin
-        @content_html = @post.content
-      rescue => e
-        Rails.logger.error "인코딩 변환 오류: #{e.message}"
-        @content_html = @post.content
-      end
-    else
-      @content_html = "<p>게시글 내용을 불러올 수 없습니다.</p>"
-    end
   end
 
   def index
