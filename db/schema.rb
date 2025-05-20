@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_09_083603) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_20_122059) do
   create_table "posts", force: :cascade do |t|
     t.string "title"
     t.text "content"
@@ -30,5 +30,18 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_09_083603) do
     t.datetime "last_updated_at"
     t.datetime "created_at", null: false
     t.datetime "updated_at", null: false
+    t.text "ai_short_description"
+    t.text "ai_summary_markdown"
+    t.text "ai_target_audience"
+    t.text "ai_duration"
+    t.text "ai_method"
+    t.text "ai_cautions"
+    t.text "ai_contact_phone"
+    t.text "ai_contact_email"
+    t.text "ai_contact_department"
+    t.text "ai_department_location"
+    t.text "ai_available_time"
+    t.text "ai_cost"
+    t.datetime "ai_analyzed_at"
   end
 end
