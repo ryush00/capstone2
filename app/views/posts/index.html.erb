@@ -1,6 +1,14 @@
 <div class="max-w-8xl mx-auto py-8 px-4 sm:px-6 lg:px-8">
   <div class="flex justify-between items-center mb-6">
-    <h1 class="text-3xl font-bold">원광대학교 사이버캠퍼스 공지사항</h1>
+    <div class="flex items-center space-x-4">
+      <a href="<%= root_path %>" class="text-blue-600 hover:text-blue-800 hover:underline flex items-center">
+        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 mr-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+        </svg>
+        AI 요약 홈
+      </a>
+      <h1 class="text-3xl font-bold">원광대학교 사이버캠퍼스 공지사항</h1>
+    </div>
     <div>
       <a href="<%= posts_path(refresh: true) %>" class="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded" data-turbo-prefetch="false">
         최신 게시글 가져오기
@@ -113,6 +121,22 @@
                 <% end %>
               </td>
             </tr>
+            <!-- AI 요약 행 추가 (데이터베이스 게시글만) -->
+            <% if post.ai_short_description.present? %>
+              <tr class="<%= post.is_notice ? 'bg-gray-50' : '' %>">
+                <td colspan="6" class="px-6 py-2 text-sm text-gray-600 border-t border-gray-100">
+                  <div class="flex items-start space-x-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+                    </svg>
+                    <div>
+                      <span class="font-medium text-blue-600">AI 요약:</span>
+                      <span class="ml-1"><%= post.ai_short_description %></span>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            <% end %>
           <% end %>
         <% end %>
       </tbody>

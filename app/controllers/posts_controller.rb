@@ -1,4 +1,12 @@
 class PostsController < ApplicationController
+  def summary
+    # is_notice인 항목들 중 ai_short_description이 있는 항목들만 필터링
+    @notice_posts = Post.where(is_notice: true)
+                       .where.not(ai_short_description: [nil, ''])
+                       .order(posted_at: :desc)
+                       .limit(20)
+  end
+
   def show
     # params[:id]는 데이터베이스의 게시글 ID (Post 모델의 id)
     @post = Post.find(params[:id])
