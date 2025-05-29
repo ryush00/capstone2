@@ -1,16 +1,31 @@
 class ExtractDataJob < ApplicationJob
   queue_as :default
 
-  def perform(post_id)
-    client = OpenAI::Client.new(
-      access_token: Rails.application.credentials.openai[:access_token],
-      log_errors: true # Highly recommended in development, so you can see what errors OpenAI is returning. Not recommended in production because it could leak private data to your logs.
-    )
+  def perform(post_id, force = false)
+    Post.transaction do
+      # FOR UPDATE로 레코드를 잠금
+      post = if force
+        # force가 true인 경우 분석 완료 여부와 관계없이 처리
+        Post.where(id: post_id)
+            .lock("FOR UPDATE SKIP LOCKED")
+            .first
+      else
+        # 일반적인 경우 AI 분석이 완료되지 않은 게시글만 처리
+        Post.where(id: post_id, ai_analyzed_at: nil)
+            .lock("FOR UPDATE SKIP LOCKED")
+            .first
+      end
 
-    post = Post.find(post_id)
-    return unless post
+      return unless post
 
-    content = post.content
+      Rails.logger.info "AI 분석 시작: 게시글 ID #{post_id} (#{post.title}) - Force: #{force}"
+
+      client = OpenAI::Client.new(
+        access_token: Rails.application.credentials.openai[:access_token],
+        log_errors: true # Highly recommended in development, so you can see what errors OpenAI is returning. Not recommended in production because it could leak private data to your logs.
+      )
+
+      content = post.content
 
     schema = JSON.parse(<<-HEREDOC
 {
@@ -80,22 +95,24 @@ HEREDOC
 
     # content에서 img를 뽑아서 image_urls 배열에 추가
     image_urls = []
-    
+
     # content가 nil이 아닌 경우에만 처리
     if content.present?
       doc = Nokogiri::HTML(content)
-      doc.css('img').each do |img|
-        src = img['src']
+      doc.css("img").each do |img|
+        src = img["src"]
+        # site/wku를 포함하고 있는 경우(템플릿 이미지인 경우)
         if src.present?
           # 상대 경로인 경우 절대 경로로 변환
-          if src.start_with?('/')
+          next if src.include?("site/wku")
+          if src.start_with?("/")
             image_urls << "https://cyber.wku.ac.kr#{src}"
           else
             image_urls << src
           end
         end
       end
-      
+
       # 중복 제거
       image_urls.uniq!
     end
@@ -107,10 +124,10 @@ HEREDOC
     image_urls.each do |url|
       contents << { type: "input_image", image_url: url }
     end
-    p contents
+
     # 이미지 URL이 없는 경우 로그 출력
     Rails.logger.info "추출된 이미지 URL이 없습니다." if image_urls.empty?
-    
+
 
     response = client.responses.create(
       parameters: {
@@ -122,46 +139,31 @@ HEREDOC
             **schema
           }
         },
-        input: [{role: "user", content: contents }],
+        input: [ { role: "user", content: contents } ]
       }
     )
 
     output = response.dig("output", 1, "content", 0, "text")
-    
-    p output
+
     result = JSON.parse(output)
 
-    post.update!(
-      ai_short_description: result["short_description"],
-      ai_summary_markdown: result["summary_markdown"],
-      ai_target_audience: result["target_audience"],
-      ai_duration: result["duration"],
-      ai_method: result["method"],
-      ai_cautions: result["cautions"],
-      ai_contact_phone: result["contact_phone"],
-      ai_contact_email: result["contact_email"],
-      ai_contact_department: result["contact_department"],
-      ai_department_location: result["department_location"],
-      ai_available_time: result["available_time"],
-      ai_cost: result["cost"],
-      ai_analyzed_at: Time.current
-    )
-    p result
-    # # message type가 아니면 reject 
-    # response = responses.reject()
+      post.update!(
+        ai_short_description: result["short_description"],
+        ai_summary_markdown: result["summary_markdown"],
+        ai_target_audience: result["target_audience"],
+        ai_duration: result["duration"],
+        ai_method: result["method"],
+        ai_cautions: result["cautions"],
+        ai_contact_phone: result["contact_phone"],
+        ai_contact_email: result["contact_email"],
+        ai_contact_department: result["contact_department"],
+        ai_department_location: result["department_location"],
+        ai_available_time: result["available_time"],
+        ai_cost: result["cost"],
+        ai_analyzed_at: Time.current
+      )
 
-    # # 
-    # puts response.class
-    # puts "---"*5
-    # puts response.dig("output")
-    # puts "---"*5
-    # puts "Response: #{response.inspect}"
-    # puts "---"*5
-    # puts response.dig("output", 0, "content", 0, "text")
-    # puts "---"*5
-
-    # result = JSON.parse(response.dig("output", 0, "content", 0, "text"))
-
-    # p result
+      Rails.logger.info "AI 분석 완료: 게시글 ID #{post_id} (#{post.title})"
+    end
   end
 end
