@@ -4,14 +4,12 @@
 {
     "name": "Ruby on Rails & Postgres",
     "dockerComposeFile": "docker-compose.yml",
-    "service": "web",
+    "service": "backend",
     "workspaceFolder": "/workspace",
-    "features": {
-        "ghcr.io/devcontainers/features/sshd:1": {},
+        "features": {
         "ghcr.io/rocker-org/devcontainer-features/apt-packages:1": {
-            "packages": "libpq-dev, libvips, postgresql-client-15, tmux"
-        },
-        "ghcr.io/devcontainers/features/docker-in-docker:2": {}
+            "packages": "libpq-dev, libvips, postgresql-client-12, tmux"
+        }
     },
     "customizations": {
         "vscode": {
@@ -31,18 +29,18 @@
     },
 
     // Use 'forwardPorts' to make a list of ports inside the container available locally.
-    "forwardPorts": [3000],
-    "portsAttributes": {
-        "3000": {
-            "label": "Rails Server",
-            "onAutoForward": "openBrowserOnce"
-        }
-    },
+    "forwardPorts": ["backend:3000"],
+    // "portsAttributes": {
+    //     "3000": {
+    //         "label": "Rails Server",
+    //         "onAutoForward": "openBrowserOnce"
+    //     }
+    // },
 
     // Use 'postCreateCommand' to run commands after the container is created.
     // "postCreateCommand": ".devcontainer/scripts/boot.sh",
     // "postAttachCommand": ".devcontainer/scripts/setup.sh",
-    "updateContentCommand": "bundle install && yarn install && bin/rails db:setup"
+    "updateContentCommand": "bundle install" //  && bin/rails db:setup
 
     // Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
     //"remoteUser": "vscode"

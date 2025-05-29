@@ -6,8 +6,12 @@ services:
       dockerfile: Dockerfile
   backend: &backend
     <<: *app
+    environment:
+      DATABASE_URL: postgres://postgres@postgres:5432/capstone2_development
     volumes:
       - ..:/workspace:cached
+    ports:
+      - 3000
   postgres:
     image: postgres
     volumes:
