@@ -35,108 +35,67 @@
         </tr>
       </thead>
       <tbody class="bg-white divide-y divide-gray-200">
-        <% if @posts.is_a?(Array) %>
-          <!-- 직접 크롤링한 게시글 목록 (기존 스타일) -->
-          <% @posts&.each do |post| %>
-            <tr class="<%= post[:type]&.include?('공지') ? 'bg-gray-50' : '' %>">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <% if post[:type].present? %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                    <%= post[:type] %>
-                  </span>
-                <% else %>
-                  <%= post[:number] %>
-                <% end %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <% if post[:link_id].present? %>
-                  <a href="https://cyber.wku.ac.kr/Cyber/ComBoard_V005/Content/print.jsp?gid=1115983888724&bid=1115985252888&cid=<%= post[:link_id] %>" target="_blank" class="text-blue-600 hover:text-blue-800 hover:underline">
-                    <%= post[:title] %>
-                  </a>
-                <% else %>
-                  <%= post[:title] %>
-                <% end %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= post[:author] %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= post[:date] %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= post[:views] %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <% if post[:has_file] %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    파일
-                  </span>
-                <% end %>
-              </td>
-            </tr>
-          <% end %>
-        <% else %>
-          <!-- 데이터베이스에서 가져온 게시글 목록 -->
-          <% @posts&.each do |post| %>
+        <% @posts&.each do |post| %>
+          <tr class="<%= post.is_notice ? 'bg-gray-50' : '' %>">
+            <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+              <% if post.is_notice %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
+                  공지
+                </span>
+              <% else %>
+                <%= post.id %>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+              <!-- 내부 상세 페이지로 링크 -->
+              <a href="<%= post_path(post) %>" class="text-blue-600 hover:text-blue-800 hover:underline">
+                <%= post.title %>
+              </a>
+              <!-- 원본 페이지 링크 -->
+              <a href="<%= post.source_url %>" target="_blank" class="ml-2 text-gray-400 hover:text-gray-600" title="원본 페이지">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+                </svg>
+              </a>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= post.author_name %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <% if post.posted_at.present? %>
+                YES
+                <%= post.posted_at.strftime("%Y-%m-%d") %>
+              <% else %>
+                NO
+                <%= post.created_at.strftime("%Y-%m-%d") %>
+              <% end %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <%= post.view_count %>
+            </td>
+            <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+              <% if post.attachment_urls.present? && post.attachment_urls.any? %>
+                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
+                  파일
+                </span>
+              <% end %>
+            </td>
+          </tr>
+          <!-- AI 요약 행 추가 (데이터베이스 게시글만) -->
+          <% if post.ai_short_description.present? %>
             <tr class="<%= post.is_notice ? 'bg-gray-50' : '' %>">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                <% if post.is_notice %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-yellow-100 text-yellow-800">
-                    공지
-                  </span>
-                <% else %>
-                  <%= post.id %>
-                <% end %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                <!-- 내부 상세 페이지로 링크 -->
-                <a href="<%= post_path(post) %>" class="text-blue-600 hover:text-blue-800 hover:underline">
-                  <%= post.title %>
-                </a>
-                <!-- 원본 페이지 링크 -->
-                <a href="<%= post.source_url %>" target="_blank" class="ml-2 text-gray-400 hover:text-gray-600" title="원본 페이지">
-                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 inline" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14" />
+              <td colspan="6" class="px-6 py-2 text-sm text-gray-600 border-t border-gray-100">
+                <div class="flex items-start space-x-2">
+                  <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
                   </svg>
-                </a>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= post.author_name %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <% if post.posted_at.present? %>
-                  <%= post.posted_at.strftime("%Y-%m-%d") %>
-                <% else %>
-                  <%= post.created_at.strftime("%Y-%m-%d") %>
-                <% end %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <%= post.view_count %>
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                <% if post.attachment_urls.present? && post.attachment_urls.any? %>
-                  <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                    파일
-                  </span>
-                <% end %>
+                  <div>
+                    <span class="font-medium text-blue-600">요약:</span>
+                    <span class="ml-1"><%= post.ai_short_description %></span>
+                  </div>
+                </div>
               </td>
             </tr>
-            <!-- AI 요약 행 추가 (데이터베이스 게시글만) -->
-            <% if post.ai_short_description.present? %>
-              <tr class="<%= post.is_notice ? 'bg-gray-50' : '' %>">
-                <td colspan="6" class="px-6 py-2 text-sm text-gray-600 border-t border-gray-100">
-                  <div class="flex items-start space-x-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 mt-0.5 text-blue-500 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
-                    </svg>
-                    <div>
-                      <span class="font-medium text-blue-600">AI 요약:</span>
-                      <span class="ml-1"><%= post.ai_short_description %></span>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            <% end %>
           <% end %>
         <% end %>
       </tbody>
