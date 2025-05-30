@@ -28,11 +28,25 @@ class FetchPostsJob < ApplicationJob
 
         # 처리된 게시글 수 추적
         posts_count = 0
-
+        notice_ids = []
         # 공지사항 처리
         doc.css("tr.notice").reverse_each do |row|
-          process_notice_post(row)
+          post = process_notice_post(row)
+          notice_ids << post.id if post
           posts_count += 1
+        end
+
+
+        # 내려간 공지사항 제거
+        current_notice_ids = Post.where(is_notice: true).pluck(:id)
+        remove_notice_ids = current_notice_ids - notice_ids
+
+        Rails.logger.info "현재 공지사항 ID: #{current_notice_ids.join(', ')}"
+        Rails.logger.info "새로운 공지사항 ID: #{notice_ids.join(', ')}"
+        Rails.logger.info "제거할 공지사항 ID: #{remove_notice_ids.join(', ')}"
+
+        unless remove_notice_ids.empty?
+          Post.where(id: remove_notice_ids).update_all(is_notice: false)
         end
 
         # 일반 게시글 처리
@@ -140,8 +154,12 @@ class FetchPostsJob < ApplicationJob
     # 게시글 저장
     if post.save
       Rails.logger.info "게시글 업서트 완료: #{post.title} (CID: #{post.cid})"
+
+      post
     else
       Rails.logger.error "게시글 업서트 실패 (CID: #{attributes[:cid]}): #{post.errors.full_messages.join(', ')}"
+
+      nil
     end
   end
 end
