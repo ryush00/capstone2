@@ -77,6 +77,14 @@ class FetchPostDetailJob < ApplicationJob
         # HTML 파싱
         doc = Nokogiri::HTML(response.body)
 
+        # 삭제된 게시글인 경우 처리
+        if doc.css("script").any? { |s| s.text.include?("존재하지 않는 게시물입니다") }
+          Rails.logger.warn "게시글이 삭제되었거나 존재하지 않습니다: #{post.title} (CID: #{post.cid})"
+          post.update(deleted_at: Time.current, last_updated_at: Time.current)
+
+          return
+        end
+
         # 게시글 내용 추출 (여러 선택자 시도)
         content_html = ""
 

@@ -10,7 +10,10 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.0].define(version: 2025_05_20_122059) do
+ActiveRecord::Schema[8.0].define(version: 2025_05_30_005347) do
+  # These are extensions that must be enabled in order to support this database
+  enable_extension "pg_catalog.plpgsql"
+
   create_table "posts", force: :cascade do |t|
     t.string "title"
     t.text "content"
@@ -43,5 +46,7 @@ ActiveRecord::Schema[8.0].define(version: 2025_05_20_122059) do
     t.text "ai_available_time"
     t.text "ai_cost"
     t.datetime "ai_analyzed_at"
+    t.datetime "deleted_at", comment: "게시글 삭제 시간"
+    t.index ["deleted_at"], name: "index_posts_on_deleted_at"
   end
 end
