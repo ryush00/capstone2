@@ -22,18 +22,16 @@ class FetchPostDetailJob < ApplicationJob
       # 지정된 limit만큼 게시글 처리
       Rails.logger.info "최대 #{limit}개의 게시글 상세 정보 크롤링 시작"
 
+      # 동일 게시글이 여러번 처리되지 않도록 처리 전 id를 추출
+      posts =  Post.where("posted_at IS NULL OR ai_analyzed_at IS NULL").pluck(:id)
+
       # limit 수만큼 반복
       limit.times do |i|
         # 트랜잭션 내에서 FOR UPDATE SKIP LOCKED를 사용하여 처리할 게시글 가져오기
         post = nil
 
         Post.transaction do
-          # 상세 정보가 없거나 AI 분석이 안된 게시글 중 하나를 선택하고 잠금 설정
-          # FOR UPDATE로 레코드를 잠그고 SKIP LOCKED로 이미 잠긴 레코드는 건너뜀
-          post = Post.where("posted_at IS NULL OR ai_analyzed_at IS NULL")
-                     .order(created_at: :desc)
-                     .lock("FOR UPDATE SKIP LOCKED")
-                     .first
+          post = Post.where(id: posts.pop).lock("FOR UPDATE SKIP LOCKED").first if posts.any?
 
           if post.present?
             process_post(post)
