@@ -25,6 +25,6 @@ class PostsController < ApplicationController
       redirect_to posts_path, flash: { notice: "게시글 목록 갱신을 요청했습니다." }
     end
 
-    @posts = Post.order(is_notice: :desc, posted_at: :desc).limit(30)
+    @posts = Post.where("posted_at IS NOT NULL").order(is_notice: :desc, posted_at: :desc).limit(30)
   end
 end
