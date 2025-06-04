@@ -19,4 +19,4 @@ services:
         value: true # Enable Solid Queue in Puma
 databases:
   - name: capstone2-db
-    plan: starter
+    plan: basic-256mb
